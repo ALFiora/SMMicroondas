@@ -1,12 +1,22 @@
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
-int potencia = 1; // valor inicial da potência
-int minutos = 0; // valor inicial dos minutos
-int segundos = 0; // valor inicial dos segundos
-int segundos_totais = 0; // valor total de segundos a serem contados pelo timer
-boolean timer_running = false; // flag para saber se o timer está rodando
-int screen = 0;
+  int potencia = 1; // valor inicial da potência
+  int minutos = 0; // valor inicial dos minutos
+  int segundos = 0; // valor inicial dos segundos
+  int segundos_totais = 0; // valor total de segundos a serem contados pelo timer
+  boolean timer_running = false; // flag para saber se o timer está rodando
+  int screen = 0;
+
+void reset() {
+  potencia = 1; // valor inicial da potência
+  minutos = 0; // valor inicial dos minutos
+  segundos = 0; // valor inicial dos segundos
+  segundos_totais = 0; // valor total de segundos a serem contados pelo timer
+  timer_running = false; // flag para saber se o timer está rodando
+  screen = 0;
+}
+
 
 void setup() {
   Serial.begin(9600);
@@ -28,6 +38,7 @@ void loop() {
     lcd.clear();
     lcd.print("Potencia");
     lcd.setCursor(0, 1);
+    if (potencia < 10) lcd.print("0");
     lcd.print(potencia);
     if (analogRead(0) < 80) {
       screen = 2;
@@ -66,26 +77,24 @@ void loop() {
     segundos_totais = minutos * 60 + segundos;
     timer_running = true;
     while (timer_running) {
-      lcd.setCursor(0, 1);
+      print_time();
       delay(1000);
       segundos_totais--;
       minutos = segundos_totais/60;
       segundos = segundos_totais%60;
-      Serial.println(segundos);
       if(segundos == 9) {
         lcd.clear();
         lcd.print("Contando");
       }
-      print_time();
       if (segundos_totais < 0) {
         timer_running = false;
       }
     }
     lcd.clear();
     lcd.print("Fim");
+    reset();
     delay(2000);
     lcd.clear();
-    screen = 1;
     setup();
   }
   
@@ -93,11 +102,7 @@ void loop() {
 
 
 void upPotencia() {
-  if (potencia < 99) {
-    potencia++;
-    lcd.setCursor(0, 1);
-    lcd.print(potencia);
-  } 
+  if (potencia < 99) potencia++;
 }
 
 void upTempo() {
@@ -116,21 +121,19 @@ void downPotencia() {
 }
 
 void downTempo() {
-  if (minutos > 0) {
-    minutos--;
-    print_time();
-  }
+  if (minutos > 0) minutos--;
 }
 
 void left() {
-  if(screen > 0) {
-    screen--;
-  }
+  if(screen > 0) screen--;
+  if (screen == 0) setup();
 }
 
 void print_time() {
   lcd.setCursor(0, 1);
+   if(minutos < 10) lcd.print("0");
   lcd.print(minutos);
   lcd.print(":");
+  if(segundos < 10) lcd.print("0");
   lcd.print(segundos);
 }
