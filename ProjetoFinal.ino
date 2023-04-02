@@ -10,6 +10,7 @@ int screen = 0;
 int cursor = 0; 
 int tempoPisca = 0;
 bool ledLigado = true;
+unsigned long timer = 0;
 
 void reset() {
   potencia = 1; // valor inicial da potência
@@ -30,7 +31,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(analogRead(0));
   // esperar pelo clique do botão direito para passar para a próxima tela
   if(screen == 0) {
     if (analogRead(0) > 700 && analogRead(0) < 800) { //Select
@@ -95,22 +95,23 @@ void loop() {
     tempoPisca++;
   } else if (screen == 3) {
     // iniciar contagem regressiva
+    timer = millis();
     lcd.clear();
     lcd.print("Contando");
     segundos_totais = minutos * 60 + segundos;
     timer_running = true;
     while (timer_running) {
       print_time(true);
-      delay(1000);
-      segundos_totais--;
+      if ((millis() - timer) >= 1000) {
+        segundos_totais--;
+        timer = millis();
+      }
       minutos = segundos_totais/60;
       segundos = segundos_totais%60;
       if (segundos_totais < 0) {
         timer_running = false;
         screen++;
       }
-      //TODO: Permitir que a pessoa volte a tela
-      Serial.println(analogRead(0));
       if (analogRead(0) > 400 && analogRead(0) < 600) { //Left
         left();
         timer_running = false;
@@ -130,7 +131,7 @@ void loop() {
 
 void upPotencia() {
   if (potencia < 90 && cursor == 0) {
-    potencia = potencia+10;
+    potencia = potencia == 1 ? potencia+9 : potencia+10;
   } else if (potencia < 99) {
     if (cursor == 0) cursor = 1;
     potencia++;
@@ -155,10 +156,12 @@ void upTempo() {
 }
 
 void downPotencia() {
-  if (potencia > 1) {
+  if (potencia > 10 && cursor == 0) {
+    potencia= potencia - 10;
+  } else if (potencia > 1) {
     potencia--;
-    delay(100);
   }
+  delay(100);
 }
 
 void downTempo() {
