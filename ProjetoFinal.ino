@@ -1,26 +1,25 @@
 #include <LiquidCrystal.h>
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7);
 
-int potencia = 1; // valor inicial da potência
-int minutos = 0; // valor inicial dos minutos
-int segundos = 0; // valor inicial dos segundos
-int segundos_totais = 0; // valor total de segundos a serem contados pelo timer
-boolean timer_running = false; // flag para saber se o timer está rodando
-int screen = 0;
-int cursor = 0; 
+int potencia = 1;               // valor inicial da potência
+int minutos = 0;                // valor inicial dos minutos
+int segundos = 0;               // valor inicial dos segundos
+int segundos_totais = 0;        // valor total de segundos a serem contados pelo temporizador
+boolean tempo_rodando = false;  // flag para saber se o temporizador está rodando
+int monitor = 0;
+int cursor = 0;
 int tempoPisca = 0;
 bool ledLigado = true;
-unsigned long timer = 0;
+unsigned long temporizador = 0;
 
 void reset() {
-  potencia = 1; // valor inicial da potência
-  minutos = 0; // valor inicial dos minutos
-  segundos = 0; // valor inicial dos segundos
-  segundos_totais = 0; // valor total de segundos a serem contados pelo timer
-  timer_running = false; // flag para saber se o timer está rodando
-  screen = 0;
+  potencia = 1;           // valor inicial da potência
+  minutos = 0;            // valor inicial dos minutos
+  segundos = 0;           // valor inicial dos segundos
+  segundos_totais = 0;    // valor total de segundos a serem contados pelo temporizador
+  tempo_rodando = false;  // flag para saber se o temporizador está rodando
+  monitor = 0;
 }
-
 
 void setup() {
   Serial.begin(9600);
@@ -32,12 +31,12 @@ void setup() {
 
 void loop() {
   // esperar pelo clique do botão direito para passar para a próxima tela
-  if(screen == 0) {
-    if (analogRead(0) > 700 && analogRead(0) < 800) { //Select
-      screen = 1;
+  if (monitor == 0) {
+    if (analogRead(0) > 700 && analogRead(0) < 800) {  //Select
+      monitor = 1;
       delay(300);
     }
-  } else if (screen == 1) {
+  } else if (monitor == 1) {
     // tela de seleção de potência
     lcd.clear();
     lcd.print("Potencia");
@@ -46,12 +45,12 @@ void loop() {
       ledLigado = !ledLigado;
       tempoPisca = 0;
     }
-    if(!ledLigado) {
+    if (!ledLigado) {
       if (cursor == 0) {
         lcd.print(" ");
-        lcd.print(potencia < 10 ? potencia : potencia%10);
+        lcd.print(potencia < 10 ? potencia : potencia % 10);
       } else {
-        lcd.print(potencia < 10 ? 0 : potencia/10);
+        lcd.print(potencia < 10 ? 0 : potencia / 10);
         lcd.print(" ");
       }
     } else {
@@ -59,19 +58,19 @@ void loop() {
       lcd.print(potencia);
     }
     if (analogRead(0) < 80) {
-      right();
+      direita();
     } else if (analogRead(0) < 200) {
-      upPotencia();
+      aumentaPotencia();
     } else if (analogRead(0) < 400) {
-      downPotencia();
+      abaixaPotencia();
     } else if (analogRead(0) < 600) {
-      left();
+      esquerda();
     } else if (analogRead(0) < 800) {
-      select();
+      seleciona();
     }
-    delay(100); //Se não colocar delay, a tela fica piscando
+    delay(100);  //Se não colocar delay, a tela fica piscando
     tempoPisca++;
-  } else if (screen == 2) {
+  } else if (monitor == 2) {
     // tela de seleção de tempo
     lcd.clear();
     lcd.print("Tempo");
@@ -79,45 +78,45 @@ void loop() {
       ledLigado = !ledLigado;
       tempoPisca = 0;
     }
-    print_time(false);
+    imprime_tempo(false);
     if (analogRead(0) < 80) {
-      right();
+      direita();
     } else if (analogRead(0) < 200) {
-      upTempo();
+      aumentaTempo();
     } else if (analogRead(0) < 400) {
-      downTempo();
+      abaixaTempo();
     } else if (analogRead(0) < 600) {
-      left();
+      esquerda();
     } else if (analogRead(0) < 800) {
-      select();
+      seleciona();
     }
-    delay(100); //Se não colocar delay, a tela fica piscando
+    delay(100);  //Se não colocar delay, a tela fica piscando
     tempoPisca++;
-  } else if (screen == 3) {
+  } else if (monitor == 3) {
     // iniciar contagem regressiva
-    timer = millis();
+    temporizador = millis();
     lcd.clear();
     lcd.print("Contando");
     segundos_totais = minutos * 60 + segundos;
-    timer_running = true;
-    while (timer_running) {
-      print_time(true);
-      if ((millis() - timer) >= 1000) {
+    tempo_rodando = true;
+    while (tempo_rodando) {
+      imprime_tempo(true);
+      if ((millis() - temporizador) >= 1000) {
         segundos_totais--;
-        timer = millis();
+        temporizador = millis();
       }
-      minutos = segundos_totais/60;
-      segundos = segundos_totais%60;
+      minutos = segundos_totais / 60;
+      segundos = segundos_totais % 60;
       if (segundos_totais < 0) {
-        timer_running = false;
-        screen++;
+        tempo_rodando = false;
+        monitor++;
       }
-      if (analogRead(0) > 400 && analogRead(0) < 600) { //Left
-        left();
-        timer_running = false;
+      if (analogRead(0) > 400 && analogRead(0) < 600) {  //esquerda
+        esquerda();
+        tempo_rodando = false;
       }
     }
-  } else if (screen == 4) {
+  } else if (monitor == 4) {
     lcd.clear();
     lcd.print("Fim");
     reset();
@@ -125,13 +124,11 @@ void loop() {
     lcd.clear();
     setup();
   }
-  
 }
 
-
-void upPotencia() {
+void aumentaPotencia() {
   if (potencia < 90 && cursor == 0) {
-    potencia = potencia == 1 ? potencia+9 : potencia+10;
+    potencia = potencia == 1 ? potencia + 9 : potencia + 10;
   } else if (potencia < 99) {
     if (cursor == 0) cursor = 1;
     potencia++;
@@ -139,7 +136,7 @@ void upPotencia() {
   delay(100);
 }
 
-void upTempo() {
+void aumentaTempo() {
   if (minutos < 59 && cursor == 0) {
     minutos++;
   } else if (cursor == 1) {
@@ -155,16 +152,16 @@ void upTempo() {
   delay(100);
 }
 
-void downPotencia() {
+void abaixaPotencia() {
   if (potencia > 10 && cursor == 0) {
-    potencia= potencia - 10;
+    potencia = potencia - 10;
   } else if (potencia > 1) {
     potencia--;
   }
   delay(100);
 }
 
-void downTempo() {
+void abaixaTempo() {
   if (minutos > 0 && cursor == 0) {
     minutos--;
   } else if (cursor == 1) {
@@ -178,49 +175,47 @@ void downTempo() {
   delay(100);
 }
 
-void left() {
-  if(screen > 0 && cursor == 0) {
+void esquerda() {
+  if (monitor > 0 && cursor == 0) {
     Serial.println("Passou");
-    screen--;
+    monitor--;
     delay(200);
-    if (screen == 0) setup();
+    if (monitor == 0) setup();
   } else {
     cursor = 0;
     delay(200);
   }
 }
 
-void right() {
+void direita() {
   cursor = cursor == 0 ? 1 : 0;
   delay(100);
 }
 
-void select () {
-  screen++;
+void seleciona() {
+  monitor++;
   cursor = 0;
   delay(100);
 }
 
-void print_time(bool ignore) {
+void imprime_tempo(bool ignora) {
   lcd.setCursor(0, 1);
 
-  if(!ledLigado && !ignore) {
+  if (!ledLigado && !ignora) {
     if (cursor == 0) {
       lcd.print("  :");
-      if(segundos < 10) lcd.print("0");
+      if (segundos < 10) lcd.print("0");
       lcd.print(segundos);
     } else {
-      if(minutos < 10) lcd.print("0");
+      if (minutos < 10) lcd.print("0");
       lcd.print(minutos);
       lcd.print(":  ");
     }
   } else {
-    if(minutos < 10) lcd.print("0");
+    if (minutos < 10) lcd.print("0");
     lcd.print(minutos);
     lcd.print(":");
-    if(segundos < 10) lcd.print("0");
+    if (segundos < 10) lcd.print("0");
     lcd.print(segundos);
   }
-
-
 }
