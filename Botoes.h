@@ -69,3 +69,15 @@ void seleciona() {
   cursor = 0;
   delay(100);
 }
+
+void aumentaTempoContador() {
+  if (segundos > 30) {
+    if (minutos < 59) {
+      minutos++;
+      segundos = segundos - 30;
+    }
+  } else {
+    segundos=segundos+30;
+   }
+  delay(200);
+}

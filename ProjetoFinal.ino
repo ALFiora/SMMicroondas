@@ -99,6 +99,15 @@ void loop() {
         esquerda();
         tempo_rodando = false;
       }
+      if (analogRead(0) > 600 && analogRead(0) < 800) {
+        tempo_rodando = false;
+        seleciona();
+      }
+      if (analogRead(0) > 80 && analogRead(0) < 200) {
+        aumentaTempoContador();
+        temporizador = millis();
+        segundos_totais = minutos * 60 + segundos;
+      }
     }
   } else if (monitor == 4) {
     lcd.clear();
