@@ -49,7 +49,6 @@ void abaixaTempo() {
 
 void esquerda() {
   if (monitor > 0 && cursor == 0) {
-    Serial.println("Passou");
     monitor--;
     delay(250);
     if (monitor == 0) setup();
@@ -67,7 +66,7 @@ void direita() {
 void seleciona() {
   monitor++;
   cursor = 0;
-  delay(100);
+  delay(200);
 }
 
 void aumentaTempoContador() {
